@@ -1,0 +1,181 @@
+import tkinter as tk
+from tkinter import messagebox
+import sqlite3
+import rsa
+import smtplib
+from email.mime.text import MIMEText
+import os
+import base64   
+
+# ---------------- DATABASE ----------------
+conn = sqlite3.connect("database.db")
+cursor = conn.cursor()
+
+cursor.execute(
+"""
+CREATE TABLE IF NOT EXISTS users(
+username TEXT,
+password TEXT
+)
+"""
+)
+
+conn.commit()
+
+# ---------------- RSA KEY GENERATION ----------------
+if not os.path.exists("public_key.pem"):
+
+    (publicKey, privateKey) = rsa.newkeys(512)
+
+    with open("public_key.pem","wb") as f:
+        f.write(publicKey.save_pkcs1())
+
+    with open("private_key.pem","wb") as f:
+        f.write(privateKey.save_pkcs1())
+
+else:
+
+    with open("public_key.pem","rb") as f:
+        publicKey = rsa.PublicKey.load_pkcs1(f.read())
+
+    with open("private_key.pem","rb") as f:
+        privateKey = rsa.PrivateKey.load_pkcs1(f.read())
+
+
+# ---------------- ENCRYPT / DECRYPT ----------------
+def encrypt_message(message):
+    return rsa.encrypt(message.encode(), publicKey)
+
+def decrypt_message(cipher):
+    return rsa.decrypt(cipher, privateKey).decode()
+
+
+# ---------------- EMAIL SEND ----------------
+def send_email(receiver, message):
+
+    sender = "yourgmail@gmail.com"
+    password = "your_app_password"
+
+    msg = MIMEText(str(message))
+    msg["Subject"] = "Secure Email Message"
+    msg["From"] = sender
+    msg["To"] = receiver
+
+    try:
+        server = smtplib.SMTP("smtp.gmail.com",587)
+        server.starttls()
+        server.login(sender,password)
+
+        server.sendmail(sender,receiver,msg.as_string())
+        server.quit()
+
+        messagebox.showinfo("Success","Email Sent Successfully")
+
+    except:
+        messagebox.showerror("Error","Email sending failed")
+
+
+# ---------------- SIGNUP ----------------
+def signup():
+
+    user = entry_user.get()
+    pwd = entry_pass.get()
+
+    cursor.execute("INSERT INTO users VALUES(?,?)",(user,pwd))
+    conn.commit()
+
+    messagebox.showinfo("Success","Account Created")
+
+
+# ---------------- LOGIN ----------------
+def login():
+
+    user = entry_user.get()
+    pwd = entry_pass.get()
+
+    cursor.execute("SELECT * FROM users WHERE username=? AND password=?",(user,pwd))
+    result = cursor.fetchone()
+
+    if result:
+        messagebox.showinfo("Login","Login Successful")
+        open_email_window()
+
+    else:
+        messagebox.showerror("Login","Invalid Login")
+
+
+# ---------------- EMAIL WINDOW ----------------
+def open_email_window():
+
+    email_win = tk.Toplevel(root)
+    email_win.title("Secure Email")
+
+    tk.Label(email_win,text="Receiver Email").pack()
+
+    receiver_entry = tk.Entry(email_win,width=40)
+    receiver_entry.pack()
+
+    tk.Label(email_win,text="Message").pack()
+
+    message_entry = tk.Entry(email_win,width=40)
+    message_entry.pack()
+
+    encrypted_box = tk.Text(email_win,height=5,width=40)
+    encrypted_box.pack()
+
+    decrypted_box = tk.Text(email_win,height=5,width=40)
+    decrypted_box.pack()
+
+    def encrypt():
+
+        msg = message_entry.get()
+        cipher = encrypt_message(msg)
+        cipher_text = base64.b64encode(cipher).decode()
+
+        encrypted_box.delete("1.0",tk.END)
+        encrypted_box.insert(tk.END,cipher_text)
+
+    def decrypt():
+
+        try:
+            cipher_text = encrypted_box.get("1.0",tk.END).strip()
+            cipher = base64.b64decode(cipher_text)
+
+            plain = decrypt_message(cipher)
+
+            decrypted_box.delete("1.0",tk.END)
+            decrypted_box.insert(tk.END,plain)
+
+        except:
+            messagebox.showerror("Error","Invalid message")
+
+    def send():
+
+        receiver = receiver_entry.get()
+        cipher = encrypted_box.get("1.0",tk.END).strip()
+
+        send_email(receiver,cipher)
+
+    tk.Button(email_win,text="Encrypt",command=encrypt).pack(pady=5)
+    tk.Button(email_win,text="Decrypt",command=decrypt).pack(pady=5)
+    tk.Button(email_win,text="Send Email",command=send).pack(pady=5)
+
+
+# ---------------- MAIN GUI ----------------
+root = tk.Tk()
+root.title("Secure Email System")
+root.geometry("320x260")
+
+tk.Label(root,text="Username").pack()
+entry_user = tk.Entry(root)
+entry_user.pack()
+
+tk.Label(root,text="Password").pack()
+
+entry_pass = tk.Entry(root,show="*")
+entry_pass.pack()
+
+tk.Button(root,text="Login",command=login).pack(pady=5)
+tk.Button(root,text="Signup",command=signup).pack(pady=5)
+
+root.mainloop()
