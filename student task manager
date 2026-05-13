@@ -1,0 +1,248 @@
+# Student Task Manager Project
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Task Manager</title>
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        background: #f4f6f9;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .task-form {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    input, select, button {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+
+    button {
+        background: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #0056b3;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: center;
+    }
+
+    th {
+        background: #007bff;
+        color: white;
+    }
+
+    .completed {
+        background: #28a745;
+    }
+
+    .delete {
+        background: #dc3545;
+    }
+
+    .completed:hover {
+        background: #1f7a33;
+    }
+
+    .delete:hover {
+        background: #a71d2a;
+    }
+
+    .status-pending {
+        color: orange;
+        font-weight: bold;
+    }
+
+    .status-done {
+        color: green;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📚 Student Task Manager</h1>
+
+    <div class="task-form">
+        <input type="text" id="taskName" placeholder="Enter Task Name">
+
+        <input type="date" id="taskDate">
+
+        <select id="taskPriority">
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+        </select>
+
+        <button onclick="addTask()">Add Task</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Deadline</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody id="taskTableBody">
+
+        </tbody>
+    </table>
+</div>
+
+<script>
+
+    let tasks = [];
+
+    function addTask() {
+
+        const taskName = document.getElementById('taskName').value;
+        const taskDate = document.getElementById('taskDate').value;
+        const taskPriority = document.getElementById('taskPriority').value;
+
+        if(taskName === '' || taskDate === '') {
+            alert('Please fill all fields');
+            return;
+        }
+
+        const task = {
+            id: Date.now(),
+            name: taskName,
+            date: taskDate,
+            priority: taskPriority,
+            status: 'Pending'
+        };
+
+        tasks.push(task);
+
+        renderTasks();
+
+        document.getElementById('taskName').value = '';
+        document.getElementById('taskDate').value = '';
+    }
+
+    function renderTasks() {
+
+        const tbody = document.getElementById('taskTableBody');
+
+        tbody.innerHTML = '';
+
+        tasks.forEach(task => {
+
+            const row = `
+                <tr>
+                    <td>${task.name}</td>
+                    <td>${task.date}</td>
+                    <td>${task.priority}</td>
+                    <td class="${task.status === 'Completed' ? 'status-done' : 'status-pending'}">
+                        ${task.status}
+                    </td>
+                    <td>
+                        <button class="completed" onclick="completeTask(${task.id})">
+                            Complete
+                        </button>
+
+                        <button class="delete" onclick="deleteTask(${task.id})">
+                            Delete
+                        </button>
+                    </td>
+                </tr>
+            `;
+
+            tbody.innerHTML += row;
+        });
+    }
+
+    function completeTask(id) {
+
+        tasks = tasks.map(task => {
+
+            if(task.id === id) {
+                task.status = 'Completed';
+            }
+
+            return task;
+        });
+
+        renderTasks();
+    }
+
+    function deleteTask(id) {
+
+        tasks = tasks.filter(task => task.id !== id);
+
+        renderTasks();
+    }
+
+</script>
+
+</body>
+</html>
+```
+
+## Features
+
+* Add new student tasks
+* Set task deadlines
+* Select task priority
+* Mark tasks as completed
+* Delete tasks
+* Responsive design
+* Dynamic table rendering using JavaScript
+
+## How to Run
+
+1. Copy the code
+2. Save it as `index.html`
+3. Open the file in any browser
+4. Start managing tasks
