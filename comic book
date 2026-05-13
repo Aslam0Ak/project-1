@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Comic Book Library</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+
+        header {
+            background: #222;
+            color: white;
+            padding: 15px;
+        }
+
+        input, select {
+            padding: 8px;
+            margin: 10px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .comic-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        button {
+            padding: 8px;
+            margin-top: 10px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>📚 Comic Book Library</h1>
+
+    <input type="text" id="searchBar" placeholder="Search comics..." onkeyup="searchComics()">
+
+    <select id="genreFilter" onchange="filterByGenre()">
+        <option value="all">All Genres</option>
+        <option value="Action">Action</option>
+        <option value="Fantasy">Fantasy</option>
+        <option value="Sci-Fi">Sci-Fi</option>
+    </select>
+</header>
+
+<div id="comicContainer" class="comic-container"></div>
+
+<script>
+    const comics = [
+        {
+            title: "Spider-Man",
+            genre: "Action",
+            description: "A superhero protecting New York City."
+        },
+        {
+            title: "Batman",
+            genre: "Action",
+            description: "The Dark Knight of Gotham."
+        },
+        {
+            title: "Harry Potter",
+            genre: "Fantasy",
+            description: "A magical wizard adventure."
+        },
+        {
+            title: "Star Wars",
+            genre: "Sci-Fi",
+            description: "An epic space saga."
+        }
+    ];
+
+    function displayComics(data) {
+        const container = document.getElementById("comicContainer");
+        container.innerHTML = "";
+
+        data.forEach(comic => {
+            container.innerHTML += `
+                <div class="card">
+                    <h3>${comic.title}</h3>
+                    <p>${comic.description}</p>
+                    <p><b>Genre:</b> ${comic.genre}</p>
+                </div>
+            `;
+        });
+    }
+
+    function searchComics() {
+        const searchValue = document.getElementById("searchBar").value.toLowerCase();
+        const filtered = comics.filter(comic =>
+            comic.title.toLowerCase().includes(searchValue)
+        );
+        displayComics(filtered);
+    }
+
+    function filterByGenre() {
+        const genre = document.getElementById("genreFilter").value;
+
+        if (genre === "all") {
+            displayComics(comics);
+        } else {
+            const filtered = comics.filter(comic => comic.genre === genre);
+            displayComics(filtered);
+        }
+    }
+
+    displayComics(comics);
+</script>
+
+</body>
+</html>
